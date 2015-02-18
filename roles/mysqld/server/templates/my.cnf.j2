@@ -21,6 +21,8 @@ innodb_log_file_size		= {{ mysqld_server_innodb_log_file_size }}
 innodb_log_files_in_group	= 2
 innodb_flush_log_at_trx_commit	= {{ mysqld_server_innodb_flush_log_at_trx_commit }}
 innodb_log_buffer_size		= 8M
+innodb_data_file_path		= ibdata1:32M:autoextend
+innodb_autoextend_increment	= 32
 innodb_fast_shutdown		= 0
 innodb_buffer_pool_dump_at_shutdown	= ON
 innodb_buffer_pool_load_at_startup	= ON
@@ -50,6 +52,13 @@ long_query_time		= 1
 
 log-error		= /var/log/mysqld/mysqld.log
 wait_timeout		= 60
+
+#log-bin		= mysql-bin-log
+#relay-log		= relay-bin-log
+#server-id		= 1
+#expire_logs_days	= 30
+#binlog_format		= mixed
+#binlog_rows_query_log_events	= 1
 
 [mysqld_safe]
 log-error		= /var/log/mysqld/mysqld.log
