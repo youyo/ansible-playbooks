@@ -1,0 +1,33 @@
+---
+- service: name=httpd state=stopped enabled=no
+
+- template: src={{ item }}.j2 dest=/etc/nginx/{{ item }} owner=root group=root mode=0644
+  notify: restart_nginx
+  with_items: 
+    - nginx.conf
+    - drop
+    - expires
+    - mobile-detect
+    - php-fpm
+    - wp-singlesite
+    - wp-multisite-subdir
+    - phpmyadmin
+
+- template: src={{ item }}.j2 dest=/etc/nginx/conf.d/{{ item }} owner=root group=root mode=0644
+  notify: restart_nginx
+  with_items:
+    - default.conf
+    - default.backend.conf
+
+- file: path={{ nginx_document_root }} state=directory mode=0751
+
+- file: path={{ item }} state=directory owner={{ nginx_user }} group={{ nginx_user }} mode=0755 recurse=yes
+  with_items: 
+    - /var/cache/nginx
+    - /var/log/nginx
+    - /var/lib/nginx
+    - /var/tmp/nginx
+
+- file: path='/etc/nginx/conf.d/example_ssl.conf' state=absent
+
+- service: name=nginx state=started enabled=yes

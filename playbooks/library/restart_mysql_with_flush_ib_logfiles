@@ -1,0 +1,11 @@
+#!/bin/bash -u
+
+service mysqld stop && \
+test -e /var/lib/mysql/ib_logfile* && rm -f /var/lib/mysql/ib_logfile*
+service mysqld start
+
+cat <<EOL
+{
+	"rc": 0
+}
+EOL

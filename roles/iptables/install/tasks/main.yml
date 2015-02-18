@@ -1,0 +1,4 @@
+---
+- name: Install iptables
+  yum: name=iptables state=present
+  when: ansible_distribution != 'Amazon'

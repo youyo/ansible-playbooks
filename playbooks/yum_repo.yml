@@ -1,0 +1,9 @@
+---
+- hosts: all
+  roles:
+  - { role: yum_repo/epel }
+  - { role: yum_repo/remi }
+  - { role: yum_repo/nginx }
+  - { role: yum_repo/mysql }
+  - { role: yum_repo/owncloud }
+  - { role: yum_repo/zabbix }

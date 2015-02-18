@@ -1,0 +1,24 @@
+---
+- name: Install ntpd
+  yum: name=ntp,ntpdate
+
+- name: Get ntpd status
+  shell: service ntpd status >/dev/null 2>&1 ; echo $?
+  register: ntpd_status
+  changed_when: false
+  always_run: yes
+
+- name: Run ntpdate
+  shell: ntpdate ntp.nict.jp
+  when: ntpd_status.stdout != "0"
+
+- name: Set ntp.conf
+  template: src='ntp.conf.j2' dest='/etc/ntp.conf'
+  notify: 
+  - restart_ntpd
+
+- name: Start ntpd
+  service: name=ntpd state=started enabled=yes
+
+- name: Enable ntpdate
+  service: name=ntpd enabled=yes

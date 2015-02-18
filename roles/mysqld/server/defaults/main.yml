@@ -1,0 +1,8 @@
+---
+mysqld_server_root_passwd: password
+mysqld_server_packages: mysql-community-server,mysql-community-client,mysql-community-devel,MySQL-python
+mysqld_server_innodb_buffer_pool_size: 128M
+mysqld_server_innodb_log_file_size: 64M
+mysqld_server_innodb_flush_log_at_trx_commit: 1
+mysqld_server_query_cache_size: 64M
+mysqld_server_tmp_table_size: 64M

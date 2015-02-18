@@ -1,0 +1,3 @@
+---
+- name: Install Common Packages
+  yum: name={{ packages }} state=present

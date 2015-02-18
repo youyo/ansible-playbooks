@@ -1,0 +1,23 @@
+#!/bin/bash -u
+
+PLATFORM='linux'
+
+if [ -e '/proc/self/cgroup' ]; then
+	if [ `egrep -wq 'docker|lxc' /proc/self/cgroup ; echo $?` -eq 0 ]; then
+		PLATFORM='lxc'
+	fi
+elif [ -e '/proc/cpuinfo' ]; then
+	if [ `egrep -wq 'QEMU Virtual CPU|Common KVM processor|Common 32-bit KVM processor' /proc/cpuinfo ; echo $?` -eq 0 ]; then
+		PLATFORM='kvm'
+	fi
+elif [ -e '/proc/xen' ]; then
+	PLATFORM='xen'
+fi
+
+cat <<EOL
+{
+	"rc": 0,
+	"changed": false,
+	"platform": "${PLATFORM}"
+}
+EOL

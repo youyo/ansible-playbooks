@@ -1,0 +1,3 @@
+---
+users:
+  - { name: 'root', pass: 'root', homedir: '/root', sudo: false, sshkeypass: "", publickey: "" }

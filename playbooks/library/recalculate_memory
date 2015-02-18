@@ -1,0 +1,24 @@
+#!/bin/bash -u
+
+total_memory=`cat ${1} | cut -d'=' -f2`
+calculated_memory=$(( total_memory / 16 ))
+
+if [ ${calculated_memory} -ge 512 ]; then
+	max_memory=512
+	half_memory=256
+elif [ ${calculated_memory} -le 128 ]; then
+	max_memory=128
+	half_memory=64
+else
+	max_memory=256
+	half_memory=128
+fi
+
+cat <<EOL
+{
+        "rc": 0,
+        "changed": false,
+        "max_memory": ${max_memory},
+	"half_memory": ${half_memory}
+}
+EOL

@@ -1,0 +1,31 @@
+#!/bin/bash -u
+
+cpu_cores=`cat ${1} | cut -d'=' -f2`
+
+if [ ${cpu_cores} -lt 3 ]; then
+	pm_max_children=$(( cpu_cores * 10 ))
+	pm_start_servers=${cpu_cores}
+	pm_min_spare_servers=${cpu_cores}
+	pm_max_spare_servers=$(( pm_max_children - pm_start_servers ))
+elif [ ${cpu_cores} -ge 4 ]; then
+	pm_max_children=40
+	pm_start_servers=10
+	pm_min_spare_servers=10
+	pm_max_spare_servers=30
+else
+	pm_max_children=10
+	pm_start_servers=1
+	pm_min_spare_servers=1
+	pm_max_spare_servers=9
+fi
+
+cat <<EOL
+{
+        "rc": 0,
+        "changed": false,
+	"pm_max_children": ${pm_max_children},
+	"pm_start_servers": ${pm_start_servers},
+	"pm_min_spare_servers": ${pm_min_spare_servers},
+	"pm_max_spare_servers": ${pm_max_spare_servers}
+}
+EOL

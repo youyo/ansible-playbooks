@@ -1,0 +1,45 @@
+require 'rake'
+require 'rspec/core/rake_task'
+require 'net/ssh'
+
+task :default => 'help:default'
+
+namespace :help do
+  desc "Show Usage."
+  task :default do
+    puts "\n\s[Usage]:\srake -T\n\n"
+  end
+end
+
+namespace :spec do
+
+  targets = []
+  File.open('./hosts') do |f|
+    f.each_line do |line|
+      if line =~ /^[^\[#].+:\d+$/
+        parts = /^(?<host>.+):(?<port>\d+)$/.match(line)
+      elsif line =~ /^[\[#].+/
+        next
+      else
+        puts 'Unmatched Format.'
+	exit 1
+      end
+      targets << parts
+    end
+  end
+
+  targets.each do |target|
+    desc "Run serverspec tests to #{target}"
+    RSpec::Core::RakeTask.new(target[:host].to_sym) do |t|
+      ENV['TARGET_HOST'] = target[:host]
+      ENV['TARGET_PORT'] = target[:port]
+      unless ENV['ROLE']
+        puts 'Undefined role.'
+        puts "ROLE=core rake spec:example.com"
+        exit 1
+      end
+      t.pattern = "spec/#{ENV['ROLE']}/*_spec.rb"
+    end
+  end
+
+end

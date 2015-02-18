@@ -1,0 +1,7 @@
+---
+- yum: name=memcached state=present enablerepo=remi
+
+- template: src='memcached.j2' dest='/etc/sysconfig/memcached' owner=root group=root mode=0644
+  notify: restart_memcached
+
+- service: name=memcached state=started enabled=yes

@@ -1,0 +1,15 @@
+---
+- yum: name={{ zabbix_agent_packages }} state=present
+
+- file: path=/var/lib/zabbix state=directory owner=zabbix group=zabbix mode=0750
+
+- shell: hostname --fqdn 2>/dev/null || hostname
+  register: Hostname
+  changed_when: false
+  always_run: yes
+
+- template: src='zabbix_agentd.conf.j2' dest='/etc/zabbix/zabbix_agentd.conf' mode=0644
+  notify: restart_zabbix_agent
+  with_items: Hostname.stdout
+
+- service: name=zabbix-agent state=started enabled=yes

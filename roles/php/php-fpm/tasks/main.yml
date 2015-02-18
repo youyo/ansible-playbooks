@@ -1,0 +1,15 @@
+---
+- calculate_php_fpm_proceesses: vcpu={{ ansible_processor_cores }}
+  register: result
+  changed_when: false
+  always_run: yes
+
+- template: src='php-fpm.conf.j2' dest='/etc/php-fpm.conf' owner=root group=root mode=0644
+  notify: restart_php_fpm
+
+- template: src='www.conf.j2' dest='/etc/php-fpm.d/www.conf' owner=root group=root mode=0644
+  with_items: 
+    - result.results
+  notify: restart_php_fpm
+
+- service: name=php-fpm state=started enabled=yes

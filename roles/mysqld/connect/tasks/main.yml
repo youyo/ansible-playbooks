@@ -1,0 +1,6 @@
+---
+- mysql_db: name={{ item.database }} state=present login_user=root login_password={{ mysqld_server_root_passwd }}
+  with_items: mysqld_connect
+
+- mysql_user: name={{ item.user }} password={{ item.pass }} host={{ item.host }} priv={{ item.database }}.*:ALL state=present login_user=root login_password={{ mysqld_server_root_passwd }}
+  with_items: mysqld_connect

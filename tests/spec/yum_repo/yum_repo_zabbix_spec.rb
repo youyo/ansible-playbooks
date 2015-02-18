@@ -1,0 +1,1 @@
+../../../roles/yum_repo/zabbix/spec/yum_repo_zabbix_spec.rb

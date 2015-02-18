@@ -1,0 +1,38 @@
+############ GENERAL PARAMETERS #################
+PidFile=/var/run/zabbix/zabbix_agentd.pid
+LogFile=/var/log/zabbix/zabbix_agentd.log
+LogFileSize=10
+# DebugLevel=3
+# SourceIP=
+# EnableRemoteCommands=0
+# LogRemoteCommands=0
+
+###### Passive checks related
+Server={{ zabbix_agent_servers }}
+ListenPort=10050
+ListenIP=0.0.0.0
+StartAgents=3
+
+###### Active checks related
+ServerActive=
+Hostname={{ item }}
+# HostnameItem=system.hostname
+# HostMetadata=
+# HostMetadataItem=
+# RefreshActiveChecks=60
+# BufferSend=5
+# BufferSize=100
+# MaxLinesPerSecond=100
+
+############# ADVANCED PARAMETERS #################
+Timeout=30
+AllowRoot={{ zabbix_agent_allow_root }}
+Include=/etc/zabbix/zabbix_agentd.d/
+
+######## USER-DEFINED MONITORED PARAMETERS #######
+# UnsafeUserParameters=0
+
+######### LOADABLE MODULES #######
+# LoadModulePath=${libdir}/modules
+# LoadModule=
+UserParameter=postfix.queuen,mailq | grep "^[0-9A-F]" | wc -l

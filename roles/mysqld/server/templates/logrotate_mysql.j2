@@ -1,0 +1,15 @@
+/var/log/mysqld/mysqld.log 
+/var/log/mysqld/mysqld-slow.log 
+{
+    notifempty
+    daily
+    rotate 5
+    missingok
+    compress
+  postrotate
+    if test -x /usr/bin/mysqladmin && /usr/bin/mysqladmin --defaults-extra-file=/root/.my.cnf ping &>/dev/null
+    then
+        /usr/bin/mysqladmin --defaults-extra-file=/root/.my.cnf flush-logs
+    fi
+  endscript
+}

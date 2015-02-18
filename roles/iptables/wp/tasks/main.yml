@@ -1,0 +1,7 @@
+---
+- template: src='iptables.j2' dest='/etc/sysconfig/iptables'
+  notify: restart_iptables
+  when: virtualization.platform != 'lxc' and ansible_distribution != 'Amazon'
+
+- service: name=iptables state=started enabled=yes
+  when: virtualization.platform != 'lxc' and ansible_distribution != 'Amazon'

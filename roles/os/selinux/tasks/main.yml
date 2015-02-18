@@ -1,0 +1,4 @@
+---
+- name: Disable SELinux
+  selinux: state=disabled
+  when: virtualization.platform != 'lxc' and ansible_distribution != 'Amazon'

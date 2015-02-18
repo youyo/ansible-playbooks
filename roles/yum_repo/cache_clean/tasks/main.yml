@@ -1,0 +1,10 @@
+---
+- name: Get yum cache
+  shell: yum -C list >/dev/null 2>&1 ; echo $?
+  register: yum_cache
+  changed_when: false
+  always_run: yes
+
+- name: Clear cache
+  shell: yum clean all
+  when: yum_cache.stdout == "0"

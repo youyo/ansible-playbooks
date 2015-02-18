@@ -1,0 +1,3 @@
+---
+php_fpm_execution_user: nginx
+php_fpm_listen: 127.0.0.1:9000

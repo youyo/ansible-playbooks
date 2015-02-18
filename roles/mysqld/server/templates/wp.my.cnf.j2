@@ -1,0 +1,57 @@
+[mysqld]
+datadir		= /var/lib/mysql
+socket		= /var/lib/mysql/mysql.sock
+pid-file	= /var/run/mysqld/mysqld.pid
+user		= mysql
+symbolic-links	= 0
+character-set-server	= utf8
+default-storage-engine	= InnoDB
+explicit_defaults_for_timestamp	= ON
+skip-name-resolve
+skip-character-set-client-handshake
+
+innodb_strict_mode
+innodb_file_per_table
+innodb_flush_method		= O_DIRECT
+innodb_write_io_threads		= 4
+innodb_read_io_threads		= 4
+innodb_thread_concurrency	= 16
+innodb_buffer_pool_size		= {{ result.max_memory }}M
+innodb_log_file_size		= {{ result.half_memory }}M
+innodb_log_files_in_group	= 2
+innodb_flush_log_at_trx_commit	= {{ mysqld_server_innodb_flush_log_at_trx_commit }}
+innodb_log_buffer_size		= 8M
+innodb_fast_shutdown		= 0
+innodb_buffer_pool_dump_at_shutdown	= ON
+innodb_buffer_pool_load_at_startup	= ON
+
+query_cache_size		= {{ result.max_memory }}M
+query_cache_limit		= 2M
+query_cache_min_res_unit	= 4k
+query_cache_type		= 1
+
+tmp_table_size		= {{ result.max_memory }}M
+max_heap_table_size	= {{ result.max_memory }}M
+
+table_open_cache	= 1024
+max_allowed_packet	= 1M
+sort_buffer_size	= 512K
+read_buffer_size	= 256K
+read_rnd_buffer_size	= 256K
+join_buffer_size	= 256K
+key_buffer_size		= 16M
+
+max_connections		= 256
+thread_cache_size	= 256
+
+slow_query_log
+slow_query_log_file	= /var/log/mysqld/mysqld-slow.log
+long_query_time		= 1
+
+log-error		= /var/log/mysqld/mysqld.log
+wait_timeout		= 60
+
+[mysqld_safe]
+log-error		= /var/log/mysqld/mysqld.log
+pid-file		= /var/run/mysqld/mysqld.pid
+character-set-server	= utf8

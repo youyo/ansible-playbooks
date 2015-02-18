@@ -1,0 +1,4 @@
+---
+- yum: name=phpMyAdmin state=present enablerepo=remi,remi-php55
+
+- template: src='config.inc.php.j2' dest='/etc/phpMyAdmin/config.inc.php' owner=root group={{ phpmyadmin_config_readable_group }} mode=0640

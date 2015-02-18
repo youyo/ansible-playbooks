@@ -1,0 +1,8 @@
+---
+- name: restart_httpd
+  service: name=httpd state=restarted
+  when: result_httpd.stdout == 0
+
+- name: restart_php_fpm
+  service: name=php-fpm state=restarted
+  when: result_php_fpm.stdout == 0

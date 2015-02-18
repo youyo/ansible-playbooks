@@ -1,0 +1,24 @@
+---
+- shell: grep -q "^# Add Kernel Parameters$" /etc/sysctl.conf
+  register: result
+  changed_when: false
+  always_run: yes
+  ignore_errors: yes
+
+- name: Add Kernel Parameters
+  shell: |
+    echo '' >> /etc/sysctl.conf
+    echo '# Add Kernel Parameters' >> /etc/sysctl.conf
+    echo 'vm.swappiness = 1' >> /etc/sysctl.conf
+    echo 'fs.file-max = 320000' >> /etc/sysctl.conf
+    echo 'net.netfilter.nf_conntrack_max = 2048000' >> /etc/sysctl.conf
+    echo 'net.nf_conntrack_max = 2048000' >> /etc/sysctl.conf
+    echo 'net.ipv4.ip_local_port_range = 10240    65535' >> /etc/sysctl.conf
+    echo 'net.ipv4.tcp_tw_reuse = 1' >> /etc/sysctl.conf
+    echo 'net.ipv4.tcp_fin_timeout = 30' >> /etc/sysctl.conf
+    echo 'net.ipv4.tcp_tw_recycle = 0' >> /etc/sysctl.conf
+    echo 'net.ipv4.tcp_keepalive_time = 20' >> /etc/sysctl.conf
+    echo 'net.ipv4.tcp_keepalive_probes = 4' >> /etc/sysctl.conf
+    echo 'net.ipv4.tcp_keepalive_intvl = 5' >> /etc/sysctl.conf
+  when: result.rc != 0 and virtualization.platform != 'lxc'
+  notify: set_sysctl

@@ -1,0 +1,26 @@
+<?php
+
+/* Servers configuration */
+$i = 0;
+
+/* Server: localhost [1] */
+$i++;
+$cfg['Servers'][$i]['verbose'] = 'localhost';
+$cfg['Servers'][$i]['host'] = '127.0.0.1';
+$cfg['Servers'][$i]['port'] = '3306';
+$cfg['Servers'][$i]['socket'] = '';
+$cfg['Servers'][$i]['connect_type'] = 'tcp';
+$cfg['Servers'][$i]['extension'] = 'mysqli';
+$cfg['Servers'][$i]['auth_type'] = 'cookie';
+$cfg['Servers'][$i]['user'] = '';
+$cfg['Servers'][$i]['password'] = '';
+
+/* End of servers configuration */
+
+$cfg['blowfish_secret'] = '53500ef0480bc1.05140681';
+$cfg['UploadDir'] = '';
+$cfg['SaveDir'] = '';
+$cfg['UserprefsDisallow'] = array('ServerLibraryDifference_DisableWarning', 'PmaNoRelation_DisableWarning', 'SuhosinDisableWarning', 'McryptDisableWarning');
+$cfg['DefaultLang'] = 'ja';
+$cfg['ServerDefault'] = 1;
+?>

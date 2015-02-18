@@ -1,0 +1,43 @@
+---
+- yum: name="{{ mysqld_server_packages }}" state=present
+
+- file: path='/var/run/mysqld' state=directory owner=mysql group=mysql mode=0750
+- file: path='/var/log/mysqld' state=directory owner=mysql group=mysql mode=0755
+- file: path='/var/log/mysqld.log' state=absent
+
+- template: src='my.cnf.j2' dest='/etc/my.cnf' mode=0644
+  notify: restart_mysql_with_flush_ib_logfiles
+  when: env != "wp"
+
+- recalculate_memory: memory={{ ansible_memtotal_mb }}
+  register: result
+  when: env == "wp"
+
+- template: src='wp.my.cnf.j2' dest='/etc/my.cnf' mode=0644
+  notify: restart_mysql_with_flush_ib_logfiles
+  when: env == "wp"
+
+- service: name=mysqld state=started enabled=yes
+
+- shell: mysql -e "show databases;" 2>/dev/null | wc -l
+  register: freelogin
+  changed_when: false
+  always_run: yes
+
+- shell: |
+    mysql -e "delete from mysql.user where User='';"
+    mysql -e "delete from mysql.user where User='root' and Host not in ('localhost', '127.0.0.1');"
+    mysql -e "drop database test;"
+    mysql -e "delete from mysql.db where Db='test' or Db='test\\_%';"
+    mysql -e "flush privileges;"
+  when: freelogin.stdout != "0"
+
+- mysql_user: name=root host={{ item }} password={{ mysqld_server_root_passwd }}
+  with_items:
+    - 127.0.0.1
+    - localhost
+  when: freelogin.stdout != "0"
+
+- template: src='root.my.cnf.j2' dest='/root/.my.cnf' owner=root group=root mode=0640
+
+- template: src='logrotate_mysql.j2' dest='/etc/logrotate.d/mysql' owner=root group=root mode=0644

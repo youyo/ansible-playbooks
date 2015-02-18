@@ -1,0 +1,3 @@
+---
+- shell: /sbin/reboot
+  when: virtualization.platform != 'lxc'

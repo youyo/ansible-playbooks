@@ -1,0 +1,21 @@
+---
+- hosts: all
+  vars_files:
+    - vars/core.yml
+  roles: 
+    - { role: yum_repo/epel }
+    - { role: yum_repo/zabbix }
+    - { role: yum_repo/cache_clean }
+    - { role: os/update }
+    - { role: os/packages }
+    - { role: os/hostname }
+    - { role: os/resolv }
+    - { role: os/selinux }
+    - { role: os/sysctl }
+    - { role: os/timezone }
+    - { role: iptables/install }
+    - { role: iptables/disable }
+    - { role: os/user }
+    - { role: os/sshd }
+    - { role: ntpd }
+    - { role: zabbix/agent }

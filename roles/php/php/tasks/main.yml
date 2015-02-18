@@ -1,0 +1,24 @@
+---
+- yum: name={{ php_packages }} state=present enablerepo=remi,remi-php55
+
+- shell: test -e /etc/init.d/httpd >/dev/null 2>&1 -a `service httpd status >/dev/null 2>&1 ; echo $?` -eq 0 ; echo $?
+  register: result_httpd
+  changed_when: false
+  always_run: yes
+
+- shell: test -e /etc/init.d/php-fpm >/dev/null 2>&1 -a `service php-fpm status >/dev/null 2>&1 ; echo $?` -eq 0 ; echo $?
+  register: result_php_fpm
+  changed_when: false
+  always_run: yes
+
+- template: src='php.ini.j2' dest='/etc/php.ini' owner=root group=root mode=0644
+  notify: 
+    - restart_httpd
+    - restart_php_fpm
+
+- template: src='apcu.ini.j2' dest='/etc/php.d/apcu.ini' owner=root group=root mode=0644
+  notify: 
+    - restart_httpd
+    - restart_php_fpm
+
+- file: path='/var/lib/php/' state=directory recurse=yes owner={{ php_execution_user }} group={{ php_execution_user }}

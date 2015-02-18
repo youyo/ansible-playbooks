@@ -1,0 +1,6 @@
+---
+dependencies:
+  - { role: yum_repo/mysql }
+  - { role: yum_repo/remi }
+  - { role: mysqld/server }
+  - { role: php/php }

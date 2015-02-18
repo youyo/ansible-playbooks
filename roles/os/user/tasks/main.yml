@@ -1,0 +1,46 @@
+---
+- name: Register Userinfo
+  shell: openssl passwd -1 "{{ item.pass }}"
+  register: userinfo
+  with_items: users
+  changed_when: false
+  always_run: yes
+
+- name: Check root password
+  shell: grep -q "{{ item.stdout }}" /etc/shadow
+  register: rootpw
+  with_items: userinfo.results
+  when: item.item.name == 'root'
+  changed_when: false
+  always_run: yes
+  ignore_errors: yes
+
+- name: Modify root User
+  user: name="{{ item.item.name }}" password="{{ item.stdout }}" home="{{ item.item.homedir }}" generate_ssh_key=yes ssh_key_passphrase="{{ item.item.sshkeypass }}"
+  with_items: userinfo.results
+  when: item.item.name == 'root' and rootpw.results[0].rc != 0
+
+- name: Create User
+  user: name="{{ item.item.name }}" password="{{ item.stdout }}" home="{{ item.item.homedir }}" generate_ssh_key=yes ssh_key_passphrase="{{ item.item.sshkeypass }}" update_password=on_create
+  with_items: userinfo.results
+  when: item.item.name != 'root'
+
+- shell: cat "{{ item.item.homedir }}/.ssh/id_rsa.pub"
+  register: keys
+  changed_when: false
+  always_run: yes
+  with_items: userinfo.results
+  ignore_errors: yes
+
+- authorized_key: user="{{ item.item.item.name }}" key="{{ item.stdout }}"
+  with_items: keys.results
+
+- file: path"={{ item.item.homedir }}/.ssh/authorized_keys" mode=0600
+  with_items: userinfo.results
+
+- authorized_key: user="{{ item.item.name }}" key="{{ item.item.publickey }}"
+  with_items: userinfo.results
+
+- lineinfile: dest="/etc/sudoers.d/users" state=present regexp="^{{ item.item.name }}*" line="{{ item.item.name }}\tALL=(ALL)\tALL" create=yes mode=0440 validate='visudo -cf %s'
+  with_items: userinfo.results
+  when: item.item.sudo == true

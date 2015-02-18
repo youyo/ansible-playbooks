@@ -1,0 +1,2 @@
+---
+- yum: name="{{ mysqld_client_packages }}" state=present

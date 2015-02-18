@@ -1,0 +1,13 @@
+---
+- name: Get file info
+  stat: path=/etc/localtime
+  register: stat_localtime
+  changed_when: false
+  always_run: yes
+
+- name: Set Timezone
+  copy: src=/usr/share/zoneinfo/Asia/Tokyo dest=/etc/localtime owner=root group=root mode=0644
+  when: stat_localtime.stat.checksum != 'a7734a4c1f435ceb4ee5fde8d9953141c9a13b3e'
+
+- name: Set System Clock
+  template: src='clock.j2' dest='/etc/sysconfig/clock'

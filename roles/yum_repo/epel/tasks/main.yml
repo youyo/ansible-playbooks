@@ -1,0 +1,12 @@
+---
+- name: Install epel-release
+  yum: name='epel-release' state=present
+
+- shell: yum repolist|grep -q epel | echo $?
+  register: yum_result
+  changed_when: false
+  always_run: true
+  ignore_errors: yes
+
+- shell: yum-config-manager --enable epel
+  when: ansible_distribution == 'Amazon' and yum_result.rc != 0

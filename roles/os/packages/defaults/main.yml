@@ -1,0 +1,2 @@
+---
+packages: wget,bash-completion,screen,sysstat,vim-enhanced,dstat,openssh-server,git,libtool,nc,sudo,logrotate,tar,libselinux-python
