@@ -36,3 +36,5 @@ Include=/etc/zabbix/zabbix_agentd.d/
 # LoadModulePath=${libdir}/modules
 # LoadModule=
 UserParameter=postfix.queuen,mailq | grep "^[0-9A-F]" | wc -l
+UserParameter=redis.status[*],redis-cli info | grep -w "$1" | awk -F':' '{print $$2}'
+UserParameter=redis.ping,redis-cli ping 2>/dev/null | grep -w 'PONG' | wc -l
