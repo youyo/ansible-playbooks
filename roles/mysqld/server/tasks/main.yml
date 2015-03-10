@@ -38,6 +38,9 @@
     - localhost
   when: freelogin.stdout != "0"
 
-- template: src='root.my.cnf.j2' dest='/root/.my.cnf' owner=root group=root mode=0640
+- template: src='login.my.cnf.j2' dest='/root/.my.cnf' owner=root group=root mode=0640
+  when: env == "wp"
+
+- template: src='login.my.cnf.j2' dest='/var/lib/zabbix/.my.cnf' owner=zabbix group=zabbix mode=0640
 
 - template: src='logrotate_mysql.j2' dest='/etc/logrotate.d/mysql' owner=root group=root mode=0644

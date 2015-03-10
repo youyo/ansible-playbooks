@@ -19,7 +19,7 @@
     - default.conf
     - default.backend.conf
 
-- file: path={{ nginx_document_root }} state=directory mode=0751
+- file: path={{ nginx_document_root }} state=directory recurse=yes mode=0751
 
 - file: path={{ item }} state=directory owner={{ nginx_user }} group={{ nginx_user }} mode=0755 recurse=yes
   with_items: 

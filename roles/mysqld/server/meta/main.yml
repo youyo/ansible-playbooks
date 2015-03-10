@@ -1,3 +1,4 @@
 ---
 dependencies:
   - { role: yum_repo/mysql }
+  - { role: zabbix/agent }

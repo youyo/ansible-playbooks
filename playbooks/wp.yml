@@ -21,6 +21,7 @@
     - { role: iptables/install }
     - { role: iptables/wp }
     - { role: ntpd }
+    - { role: zabbix/agent }
     - { role: mysqld/server }
     - { role: mysqld/connect }
     - { role: php/php }
@@ -29,4 +30,3 @@
     - { role: nginx/install }
     - { role: nginx/wp }
     - { role: cms/wordpress }
-    - { role: zabbix/agent }
