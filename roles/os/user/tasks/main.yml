@@ -20,6 +20,11 @@
   with_items: userinfo.results
   when: item.item.name == 'root' and rootpw.results[0].rc != 0
 
+- name: Check User Homedir
+  shell: test -e `echo {{ item.item.homedir }} | sed "s|/[^/]*$||"` || mkdir -p `echo {{ item.item.homedir }} | sed "s|/[^/]*$||"`
+  with_items: userinfo.results
+  when: item.item.name != 'root'
+
 - name: Create User
   user: name="{{ item.item.name }}" password="{{ item.stdout }}" home="{{ item.item.homedir }}" generate_ssh_key=yes ssh_key_passphrase="{{ item.item.sshkeypass }}" update_password=on_create
   with_items: userinfo.results
