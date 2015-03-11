@@ -1,0 +1,97 @@
+#!/bin/bash -u
+
+LOGFILE='/tmp/wp-setup.log'
+exec 1> >(awk '{print strftime("[%Y-%m-%d %H:%M:%S]"),$0 } { fflush() } ' >> $LOGFILE)
+exec 2> >(awk '{print strftime("[%Y-%m-%d %H:%M:%S]"),$0 } { fflush() } ' >> $LOGFILE)
+
+
+function create_db_name(){
+	db=`echo "${1}" | sed "s/[\.|_|-]//g"`
+	while [ `echo ${db}|wc -c` -gt 15 ]; do
+		db=`echo ${db} | sed "s|.$||"`
+	done
+	echo ${db}
+}
+
+HOSTNAME=${1}
+DATABASE=`create_db_name ${HOSTNAME}`
+PASSWORD=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1`
+DOC_DIR='/var/www/vhosts'
+OWNER=`stat --format %U ${DOC_DIR}`
+GROUP=`stat --format %G ${DOC_DIR}`
+TEMPFILE=`mktemp /tmp/temp.XXXXXX`
+TEMPDIR=`mktemp -d /tmp/temp.XXXXXX`
+trap "cd /tmp/ ; rm -rf ${TEMPFILE} ${TEMPDIR}" EXIT
+
+function get_wp(){
+	test -e /tmp/wordpress.tgz || curl -o /tmp/wordpress.tgz https://ja.wordpress.org/latest-ja.tar.gz >/dev/null 2>&1
+}
+
+function unarchive_deploy(){
+	if [ -e "${DOC_DIR}/${HOSTNAME}/" ]; then
+		echo "ERROR: ${DOC_DIR}/${HOSTNAME}/ is already exist."
+		exit 99
+	else
+		tar xzf /tmp/wordpress.tgz -C ${TEMPDIR}
+		mv ${TEMPDIR}/wordpress ${DOC_DIR}/${HOSTNAME}
+	fi
+}
+
+function set_permission(){
+	chown -R ${OWNER}:${GROUP} ${DOC_DIR}/${HOSTNAME}
+}
+
+function create_databases(){
+	if [ `mysql -e "show databases"|grep ${DATABASE} | wc -l` -eq 0 ]; then
+		mysql -e "create database ${DATABASE}"
+		mysql -e "grant all privileges on ${DATABASE}.* to ${DATABASE}@localhost identified by '${PASSWORD}'"
+		mysql -e "flush privileges"
+	else
+		echo "ERROR: '${DATABASE}' is already exist."
+		exit 99
+	fi
+}
+
+function rename_conf(){
+	if [ -e "${DOC_DIR}/${HOSTNAME}/wp-config-sample.php" -a ! -e "${DOC_DIR}/${HOSTNAME}/wp-config.php" ]; then
+		mv ${DOC_DIR}/${HOSTNAME}/wp-config-sample.php ${DOC_DIR}/${HOSTNAME}/wp-config.php
+	elif [ -e "${DOC_DIR}/${HOSTNAME}/wp-config.php" ]; then
+		echo "INFO: wp-config.php is already exist."
+	else
+		echo 'ERROR: wp-config-sample.php rename failed.'
+		exit 99
+	fi
+}
+
+# http://stackoverflow.com/questions/6233398/download-and-insert-salt-string-inside-wordpress-wp-config-php-with-bash
+function replace_salt_key(){
+	SALT=$(curl -L https://api.wordpress.org/secret-key/1.1/salt/)
+	STRING='put your unique phrase here'
+	printf '%s\n' "g/$STRING/d" a "$SALT" . w | ed -s ${DOC_DIR}/${HOSTNAME}/wp-config.php
+}
+
+function replace_config(){
+	sed -i "s|database_name_here|${DATABASE}|" ${DOC_DIR}/${HOSTNAME}/wp-config.php
+	sed -i "s|username_here|${DATABASE}|" ${DOC_DIR}/${HOSTNAME}/wp-config.php
+	sed -i "s|password_here|${PASSWORD}|" ${DOC_DIR}/${HOSTNAME}/wp-config.php
+	replace_salt_key
+}
+
+function create_nginx_config(){
+	/usr/local/sbin/create_config.sh ${HOSTNAME}
+	nginx -t
+	if [ $? -eq 0 ]; then
+		/sbin/service nginx reload
+	else
+		echo 'ERROR: nginx syntax error!'
+		exit 99
+	fi
+}
+
+get_wp
+unarchive_deploy
+set_permission
+create_databases
+rename_conf
+replace_config
+create_nginx_config
