@@ -1,0 +1,45 @@
+#!/bin/bash -u
+
+if [ $# -ne 0 ]; then
+  SITENAME=$1
+else
+  while :
+  do
+    echo -n "please input site name: "
+    read SITENAME
+    if [ "$SITENAME" != "" ]; then
+      break;
+    fi
+  done
+fi
+
+if [ -f /var/www/vhosts/${SITENAME}/wp-config.php ]; then
+  echo "'/var/www/vhosts/${SITENAME}/wp-config.php' is already exist."
+  echo "$Please delete {SITENAME}, before wp-setup."
+  exit 99
+fi
+
+echo "start..."
+echo ""
+
+if [ -f /usr/local/sbin/install-wp.sh ]; then
+	/usr/local/sbin/install-wp.sh ${SITENAME}
+	RESULT=`echo $?`
+else
+	echo "ERROR: create-wp.sh is not found."
+	echo ""
+	echo "...done"
+	exit 99
+fi
+
+if [ `echo ${RESULT}` -ne 0 ]; then
+	echo "ERROR: wordpress install is failed."
+	echo ""
+	echo "...done"
+	exit 99
+fi
+
+echo "...WordPress installed"
+echo ""
+echo "...done"
+exit 0

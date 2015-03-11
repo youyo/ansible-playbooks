@@ -42,3 +42,12 @@
 - replace: dest={{ wordpress_install_path }}/wp-config.php regexp="^define\('SECURE_AUTH_SALT', 'pu.+" replace="{{ wp_secret_key_salt.secure_auth_salt }}"
 - replace: dest={{ wordpress_install_path }}/wp-config.php regexp="^define\('LOGGED_IN_SALT',   'pu.+" replace="{{ wp_secret_key_salt.logged_in_salt }}"
 - replace: dest={{ wordpress_install_path }}/wp-config.php regexp="^define\('NONCE_SALT',       'pu.+" replace="{{ wp_secret_key_salt.nonce_salt }}"
+
+- name: Set wp-setup command
+  template: src='wp-setup.j2' dest='/usr/local/sbin/wp-setup' owner=root group=root mode=0750
+
+- name: Set install-wp.sh command
+  template: src='install-wp.sh.j2' dest='/usr/local/sbin/install-wp.sh' owner=root group=root mode=0750
+
+- name: Set create_config.sh command
+  template: src='create_config.sh.j2' dest='/usr/local/sbin/create_config.sh' owner=root group=root mode=0750

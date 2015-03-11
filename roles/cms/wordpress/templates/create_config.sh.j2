@@ -1,0 +1,94 @@
+#!/bin/bash -ux
+
+HOSTNAME=${1}
+
+cat <<EOL> /etc/nginx/conf.d/${HOSTNAME}.backend.conf
+server {
+	listen		unix:/var/run/nginx-backend.sock;
+	server_name	${HOSTNAME};
+	root		/var/www/vhosts/${HOSTNAME};
+	index		index.php index.html index.htm;
+
+	access_log		/var/log/nginx/${HOSTNAME}.backend.access.log backend;
+	keepalive_timeout	25;
+	port_in_redirect	off;
+
+	gzip		off;
+	gzip_vary	off;
+
+	include		/etc/nginx/wp-singlesite;
+	#include	/etc/nginx/wp-multisite-subdir;
+}
+EOL
+
+cat <<EOL> /etc/nginx/conf.d/${HOSTNAME}.conf
+#
+server {
+	listen		80;
+	server_name	${HOSTNAME};
+	root		/var/www/vhosts/${HOSTNAME};
+	index		index.html index.htm;
+	charset		utf-8;
+
+	access_log	/var/log/nginx/${HOSTNAME}.access.log  main;
+	error_log	/var/log/nginx/${HOSTNAME}.error.log;
+
+	include		/etc/nginx/drop;
+
+	rewrite /wp-admin$ \$scheme://\$host\$uri/ permanent;
+	#rewrite ^(.*)(index|home|default)\.html? \$1 permanent;
+
+	set \$mobile '';
+	#include /etc/nginx/mobile-detect;
+
+	set \$do_not_cache 0;
+	if (\$http_cookie ~* "comment_author_|wordpress_(?!test_cookie)|wp-postpass_" ) {
+		set \$do_not_cache 1;
+	}
+	if (\$request_method != GET) {
+		set \$do_not_cache 1;
+	}
+
+	location / {
+		try_files \$uri @wordpress;
+
+		# Pass all .php files onto a php-fpm/php-fcgi server.
+		location ~ \.php$ {
+			try_files \$uri @wordpress;
+			include /etc/nginx/php-fpm;
+		}
+	}
+
+	location @wordpress {
+		internal;
+
+		proxy_no_cache		\$do_not_cache;
+		proxy_cache_bypass	\$do_not_cache;
+
+		proxy_redirect		off;
+		proxy_cache		czone;
+		proxy_cache_key		"\$scheme://\$host\$request_uri\$mobile";
+		proxy_cache_valid	200 0m;
+		proxy_pass		http://backend;
+	}
+
+	#
+	# When you use phpMyAdmin, uncomment the line "include /etc/nginx/phpmyadmin;"
+	# and delete or comment out the below line "location ~* /(phpmyadmin|myadmin|pma) { }".
+	#
+	#include	/etc/nginx/phpmyadmin;
+	location ~* /(phpmyadmin|myadmin|pma) {
+		access_log off;
+		log_not_found off;
+		return 404;
+	}
+
+	#
+	# redirect server error pages to the static page /50x.html
+	#
+	error_page 	502 503 504	/50x.html;
+	location = /50x.html {
+		root	/usr/share/nginx/html;
+	}
+}
+EOL
