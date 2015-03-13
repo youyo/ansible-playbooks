@@ -8,19 +8,10 @@ users:
   - { name: 'wpadmin', pass: 'password', homedir: '/var/www/vhosts', sudo: true, sshkeypass: "sshkeypass", publickey: "" }
 mysqld_server_root_passwd: password
 mysqld_server_innodb_flush_log_at_trx_commit: 2
-mysqld_connect:
-  - { user: wordpress, pass: wordpress, host: localhost, database: wordpress }
 php_execution_user: wpadmin
 php_fpm_execution_user: wpadmin
 php_fpm_listen: /var/run/php-fpm.sock
 nginx_user: wpadmin
-nginx_document_root: /var/www/vhosts/html
 phpmyadmin_config_readable_group: wpadmin
-wordpress_install_path: /var/www/vhosts/html
-wordpress_owner: wpadmin
-wordpress_group: wpadmin
-wordpress_db_user: wordpress
-wordpress_db_pass: wordpress
-wordpress_db_host: localhost
-wordpress_db_database: wordpress
+wordpress_install_path: /var/www/vhosts
 zabbix_agent_servers: 127.0.0.1

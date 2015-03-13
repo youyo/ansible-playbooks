@@ -15,6 +15,8 @@
   always_run: yes
   ignore_errors: yes
 
+- debug: msg="{{ rootpw }}"
+
 - name: Modify root User
   user: name="{{ item.item.name }}" password="{{ item.stdout }}" home="{{ item.item.homedir }}" generate_ssh_key=yes ssh_key_passphrase="{{ item.item.sshkeypass }}"
   with_items: userinfo.results
@@ -30,7 +32,7 @@
   with_items: userinfo.results
   when: item.item.name != 'root'
 
-- shell: cat "{{ item.item.homedir }}/.ssh/id_rsa.pub"
+- shell: test -e "{{ item.item.homedir }}/.ssh/id_rsa.pub" && cat "{{ item.item.homedir }}/.ssh/id_rsa.pub"
   register: keys
   changed_when: false
   always_run: yes

@@ -13,9 +13,9 @@ else
   done
 fi
 
-if [ -f /var/www/vhosts/${SITENAME}/wp-config.php ]; then
-  echo "'/var/www/vhosts/${SITENAME}/wp-config.php' is already exist."
-  echo "$Please delete {SITENAME}, before wp-setup."
+if [ -f {{ wordpress_install_path }}/${SITENAME}/wp-config.php ]; then
+  echo "'{{ wordpress_install_path }}/${SITENAME}/wp-config.php' is already exist."
+  echo "$Please delete ${SITENAME}, before wp-setup."
   exit 99
 fi
 

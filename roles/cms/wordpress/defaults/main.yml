@@ -1,9 +1,2 @@
 ---
-wordpress_package_url: 'https://ja.wordpress.org/latest-ja.tar.gz'
-wordpress_install_path: /var/www/html/
-wordpress_owner: apache
-wordpress_group: apache
-wordpress_db_user: sample
-wordpress_db_pass: sample
-wordpress_db_host: localhost
-wordpress_db_database: sample
+wordpress_install_path: /var/www

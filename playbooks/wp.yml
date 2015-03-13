@@ -23,7 +23,6 @@
     - { role: ntpd }
     - { role: zabbix/agent }
     - { role: mysqld/server }
-    - { role: mysqld/connect }
     - { role: php/php }
     - { role: php/php-fpm }
     - { role: mysqld/phpmyadmin }
