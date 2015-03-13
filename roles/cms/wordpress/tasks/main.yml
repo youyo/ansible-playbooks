@@ -1,48 +1,4 @@
 ---
-- get_url: url={{ wordpress_package_url }} dest='/usr/local/src/wordpress.tgz' timeout=60
-
-- unarchive: src='/usr/local/src/wordpress.tgz' dest='/usr/local/src/' copy=no creates=yes
-
-- file: path={{ wordpress_install_path }} state=directory owner={{ wordpress_owner }} group={{ wordpress_group }} mode=751
-
-- shell: ls {{ wordpress_install_path }} 2>/dev/null | wc -l 2>/dev/null
-  register: file_count
-  changed_when: false
-  always_run: yes
-
-- shell: cp -a /usr/local/src/wordpress/* {{ wordpress_install_path }}/
-  when: file_count.stdout == '0'
-
-- file: path={{ wordpress_install_path }} state=directory owner={{ wordpress_owner }} group={{ wordpress_group }} recurse=yes
-
-
-- shell: test -e {{ wordpress_install_path }}/wp-config-sample.php && echo 0 || echo 1
-  register: sample_exist
-  changed_when: false
-  always_run: yes
-
-- shell: mv {{ wordpress_install_path }}/wp-config-sample.php {{ wordpress_install_path }}/wp-config.php
-  when: sample_exist.stdout == '0'
-
-- replace: dest={{ wordpress_install_path }}/wp-config.php regexp="database_name_here" replace={{ wordpress_db_database }}
-- replace: dest={{ wordpress_install_path }}/wp-config.php regexp="username_here" replace={{ wordpress_db_user }}
-- replace: dest={{ wordpress_install_path }}/wp-config.php regexp="password_here" replace={{ wordpress_db_pass }}
-- replace: dest={{ wordpress_install_path }}/wp-config.php regexp="localhost" replace={{ wordpress_db_host }}
-
-- wp_secret_key_salt:
-  register: wp_secret_key_salt
-  changed_when: false
-  always_run: yes
-
-- replace: dest={{ wordpress_install_path }}/wp-config.php regexp="^define\('AUTH_KEY',         'pu.+" replace="{{ wp_secret_key_salt.auth_key }}"
-- replace: dest={{ wordpress_install_path }}/wp-config.php regexp="^define\('SECURE_AUTH_KEY',  'pu.+" replace="{{ wp_secret_key_salt.secure_auth_key }}"
-- replace: dest={{ wordpress_install_path }}/wp-config.php regexp="^define\('LOGGED_IN_KEY',    'pu.+" replace="{{ wp_secret_key_salt.logged_in_key }}"
-- replace: dest={{ wordpress_install_path }}/wp-config.php regexp="^define\('NONCE_KEY',        'pu.+" replace="{{ wp_secret_key_salt.nonce_key }}"
-- replace: dest={{ wordpress_install_path }}/wp-config.php regexp="^define\('AUTH_SALT',        'pu.+" replace="{{ wp_secret_key_salt.auth_salt }}"
-- replace: dest={{ wordpress_install_path }}/wp-config.php regexp="^define\('SECURE_AUTH_SALT', 'pu.+" replace="{{ wp_secret_key_salt.secure_auth_salt }}"
-- replace: dest={{ wordpress_install_path }}/wp-config.php regexp="^define\('LOGGED_IN_SALT',   'pu.+" replace="{{ wp_secret_key_salt.logged_in_salt }}"
-- replace: dest={{ wordpress_install_path }}/wp-config.php regexp="^define\('NONCE_SALT',       'pu.+" replace="{{ wp_secret_key_salt.nonce_salt }}"
-
 - name: Set wp-setup command
   template: src='wp-setup.j2' dest='/usr/local/sbin/wp-setup' owner=root group=root mode=0750
 
@@ -51,3 +7,19 @@
 
 - name: Set create_config.sh command
   template: src='create_config.sh.j2' dest='/usr/local/sbin/create_config.sh' owner=root group=root mode=0750
+
+- name: Set create_default_config.sh command
+  template: src='create_default_config.sh.j2' dest='/usr/local/sbin/create_default_config.sh' owner=root group=root mode=0750
+
+- file: path={{ wordpress_install_path }} state=directory mode=0751
+
+- name: Check wordpres files
+  shell: ls {{ wordpress_install_path }} 2>/dev/null | wc -l 2>/dev/null
+  register: file_count
+  changed_when: false
+  always_run: yes
+
+- name: Install Wordpress
+  command: /usr/local/sbin/wp-setup default default
+  when: file_count.stdout == '0'
+  #shell: /usr/local/sbin/wp-setup default default

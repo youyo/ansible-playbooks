@@ -4,7 +4,7 @@ SITENAME=${1}
 
 cat <<EOL> /etc/nginx/conf.d/${SITENAME}.backend.conf
 server {
-	listen		unix:/var/run/nginx-backend.sock;
+	listen		unix:/var/run/nginx-backend.sock default_server;
 	server_name	${SITENAME};
 	root		{{ wordpress_install_path }}/${SITENAME};
 	index		index.php index.html index.htm;
@@ -24,7 +24,7 @@ EOL
 cat <<EOL> /etc/nginx/conf.d/${SITENAME}.conf
 #
 server {
-	listen		80;
+	listen		80 default_server;
 	server_name	${SITENAME};
 	root		{{ wordpress_install_path }}/${SITENAME};
 	index		index.html index.htm;

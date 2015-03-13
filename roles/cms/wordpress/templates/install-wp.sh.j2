@@ -6,39 +6,46 @@ exec 2> >(awk '{print strftime("[%Y-%m-%d %H:%M:%S]"),$0 } { fflush() } ' >> $LO
 
 
 function create_db_name(){
-	db=`echo "${1}" | sed "s/[\.|_|-]//g"`
-	while [ `echo ${db}|wc -c` -gt 15 ]; do
-		db=`echo ${db} | sed "s|.$||"`
-	done
+	if [ ${1} == 'default' ]; then
+		db='wordpress'
+	else
+		db=`echo "${1}" | sed "s/[\.|_|-]//g"`
+		while [ `echo ${db}|wc -c` -gt 15 ]; do
+			db=`echo ${db} | sed "s|.$||"`
+		done
+	fi
 	echo ${db}
 }
 
-HOSTNAME=${1}
-DATABASE=`create_db_name ${HOSTNAME}`
-PASSWORD=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1`
-DOC_DIR='/var/www/vhosts'
-OWNER=`stat --format %U ${DOC_DIR}`
-GROUP=`stat --format %G ${DOC_DIR}`
+SITENAME=${1}
+DATABASE=`create_db_name ${SITENAME}`
+PASSWORD=`uuidgen | tr -d '-' | awk '{print substr($0, 0, 15)}'`
+OWNER=`stat --format %U {{ wordpress_install_path }}`
+GROUP=`stat --format %G {{ wordpress_install_path }}`
 TEMPFILE=`mktemp /tmp/temp.XXXXXX`
 TEMPDIR=`mktemp -d /tmp/temp.XXXXXX`
 trap "cd /tmp/ ; rm -rf ${TEMPFILE} ${TEMPDIR}" EXIT
 
 function get_wp(){
-	test -e /tmp/wordpress.tgz || curl -o /tmp/wordpress.tgz https://ja.wordpress.org/latest-ja.tar.gz >/dev/null 2>&1
+	curl -o /tmp/wordpress.tgz https://ja.wordpress.org/latest-ja.tar.gz
+}
+
+function delete_wp(){
+	rm -f /tmp/wordpress.tgz
 }
 
 function unarchive_deploy(){
-	if [ -e "${DOC_DIR}/${HOSTNAME}/" ]; then
-		echo "ERROR: ${DOC_DIR}/${HOSTNAME}/ is already exist."
+	if [ -e "{{ wordpress_install_path }}/${SITENAME}/" ]; then
+		echo "ERROR: {{ wordpress_install_path }}/${SITENAME}/ is already exist."
 		exit 99
 	else
 		tar xzf /tmp/wordpress.tgz -C ${TEMPDIR}
-		mv ${TEMPDIR}/wordpress ${DOC_DIR}/${HOSTNAME}
+		mv ${TEMPDIR}/wordpress {{ wordpress_install_path }}/${SITENAME}
 	fi
 }
 
 function set_permission(){
-	chown -R ${OWNER}:${GROUP} ${DOC_DIR}/${HOSTNAME}
+	chown -R ${OWNER}:${GROUP} {{ wordpress_install_path }}/${SITENAME}
 }
 
 function create_databases(){
@@ -53,9 +60,9 @@ function create_databases(){
 }
 
 function rename_conf(){
-	if [ -e "${DOC_DIR}/${HOSTNAME}/wp-config-sample.php" -a ! -e "${DOC_DIR}/${HOSTNAME}/wp-config.php" ]; then
-		mv ${DOC_DIR}/${HOSTNAME}/wp-config-sample.php ${DOC_DIR}/${HOSTNAME}/wp-config.php
-	elif [ -e "${DOC_DIR}/${HOSTNAME}/wp-config.php" ]; then
+	if [ -e "{{ wordpress_install_path }}/${SITENAME}/wp-config-sample.php" -a ! -e "{{ wordpress_install_path }}/${SITENAME}/wp-config.php" ]; then
+		mv {{ wordpress_install_path }}/${SITENAME}/wp-config-sample.php {{ wordpress_install_path }}/${SITENAME}/wp-config.php
+	elif [ -e "{{ wordpress_install_path }}/${SITENAME}/wp-config.php" ]; then
 		echo "INFO: wp-config.php is already exist."
 	else
 		echo 'ERROR: wp-config-sample.php rename failed.'
@@ -67,18 +74,22 @@ function rename_conf(){
 function replace_salt_key(){
 	SALT=$(curl -L https://api.wordpress.org/secret-key/1.1/salt/)
 	STRING='put your unique phrase here'
-	printf '%s\n' "g/$STRING/d" a "$SALT" . w | ed -s ${DOC_DIR}/${HOSTNAME}/wp-config.php
+	printf '%s\n' "g/$STRING/d" a "$SALT" . w | ed -s {{ wordpress_install_path }}/${SITENAME}/wp-config.php
 }
 
 function replace_config(){
-	sed -i "s|database_name_here|${DATABASE}|" ${DOC_DIR}/${HOSTNAME}/wp-config.php
-	sed -i "s|username_here|${DATABASE}|" ${DOC_DIR}/${HOSTNAME}/wp-config.php
-	sed -i "s|password_here|${PASSWORD}|" ${DOC_DIR}/${HOSTNAME}/wp-config.php
+	sed -i "s|database_name_here|${DATABASE}|" {{ wordpress_install_path }}/${SITENAME}/wp-config.php
+	sed -i "s|username_here|${DATABASE}|" {{ wordpress_install_path }}/${SITENAME}/wp-config.php
+	sed -i "s|password_here|${PASSWORD}|" {{ wordpress_install_path }}/${SITENAME}/wp-config.php
 	replace_salt_key
 }
 
 function create_nginx_config(){
-	/usr/local/sbin/create_config.sh ${HOSTNAME}
+	if [ ${SITENAME} == 'default' ]; then
+		/usr/local/sbin/create_default_config.sh ${SITENAME}
+	else
+		/usr/local/sbin/create_config.sh ${SITENAME}
+	fi
 	nginx -t
 	if [ $? -eq 0 ]; then
 		/sbin/service nginx reload
@@ -95,3 +106,4 @@ create_databases
 rename_conf
 replace_config
 create_nginx_config
+delete_wp
