@@ -49,7 +49,7 @@ function set_permission(){
 }
 
 function create_databases(){
-	if [ `mysql -e "show databases"|grep ${DATABASE} | wc -l` -eq 0 ]; then
+	if [ `mysql -e "show databases"|grep -w ${DATABASE} | wc -l` -eq 0 ]; then
 		mysql -e "create database ${DATABASE}"
 		mysql -e "grant all privileges on ${DATABASE}.* to ${DATABASE}@localhost identified by '${PASSWORD}'"
 		mysql -e "flush privileges"
